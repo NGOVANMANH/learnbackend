@@ -2,21 +2,24 @@ import express from "express";
 import dotenv from "dotenv";
 
 import { connect } from "./repositories/index.js";
-import { userRoute } from "./routes/index.js";
+import initAppRoute from "./routes/index.js";
 
+// config environment
 dotenv.config();
 
+// new express instance
 const app = express();
 
+// app middleware
 app.use(express.json());
 
-app.use("/user", userRoute)
+// init app routes
+const apiRoute = express.Router();
+app.use("/api", apiRoute);
 
-app.get("/", (req, res) => {
-    res.send("Hello World");
-})
+initAppRoute(apiRoute);
 
-
+// start app
 const start = async () => {
     const port = process.env.PORT || 3000;
 

@@ -1,21 +1,25 @@
 import { UserModel } from "../models/index.js";
 
 class UserRepository {
+
     create = async ({
         username,
         email,
         password,
+        role,
     }) => {
         try {
             const newUser = await UserModel.create({
                 username,
                 email,
                 password,
+                role
             });
 
-            return {
-                ...newUser.toObject(),
-            }
+            let returnUser = newUser.toObject();
+            delete returnUser.password;
+
+            return returnUser;
         } catch (error) {
             throw error;
         }
@@ -25,17 +29,21 @@ class UserRepository {
         try {
             const users = await UserModel.find({});
 
-            return users.map(user => user.toObject());
+            return users.map(user => {
+                const { password, ...userObject } = user.toObject();
+                return userObject;
+            });
         } catch (error) {
             throw error;
         }
     }
 
-    getById = async ({ id }) => {
+    findById = async (id) => {
         try {
             const user = await UserModel.findById(id);
-
-            return user.toObject();
+            let returnUser = user.toObject();
+            delete returnUser.password;
+            return returnUser;
         } catch (error) {
             throw error;
         }

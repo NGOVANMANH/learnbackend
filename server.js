@@ -2,8 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 
-import connect from "./config/connect.js";
-import initAppRoute from "./routes/index.js";
+import connect from "./src/config/connect.js";
+import initAppRoute from "./src/routes/index.js";
 
 // config environment
 dotenv.config();

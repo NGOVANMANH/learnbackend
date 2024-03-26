@@ -37,6 +37,10 @@ class AuthRepository {
         }
     }
 
+
+    refreshToken = async (refreshToken) => {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+    }
 }
 
 export default new AuthRepository();

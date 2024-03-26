@@ -38,9 +38,30 @@ const verrifyRefreshToken = (refreshToken) => {
     }
 }
 
+const handleError = (error) => {
+    let errors = {};
+
+    switch (error.message) {
+        case "jwt expired":
+            errors.token = "Token expired";
+            errors.expiredAt = error.expiredAt;
+            break;
+        case "invalid token":
+            errors.token = "Invalid token";
+            break;
+        case "invalid signature":
+            errors.token = "Please use valid token";
+            break;
+        default: errors.token = "Unknow error";
+    }
+
+    return errors;
+}
+
 export {
     signAccessToken,
     signRefreshToken,
     verrifyAccessToken,
-    verrifyRefreshToken
+    verrifyRefreshToken,
+    handleError as handleTokenError,
 }

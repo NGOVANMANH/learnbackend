@@ -25,12 +25,54 @@ class UserRepository {
         }
     }
 
-    getAll = async () => {
+    get = async ({ page,
+        offset,
+        limit,
+        sort_by,
+        sort_order }) => {
         try {
-            const users = await UserModel.find({});
+            const OFFSET = 0;
+            const LIMIT = 5;
+
+            const sortParams = ["username", "email", "role", "createdAt", "updatedAt"];
+
+            let users = [];
+
+            if (page) {
+                if (+page >= 0)
+                    users = await UserModel.find()
+                        .skip((+page) * (+limit || LIMIT))
+                        .limit(+limit || LIMIT);
+            }
+            else if (offset && limit) {
+                users = await UserModel.find()
+                    .skip(+offset)
+                    .limit(+limit);
+
+            }
+            else {
+                users = await UserModel.find();
+            }
+
+            users = users.map(user => user.toObject());
+
+            if (sort_by) {
+                let compareFn;
+                let sortBy = sort_by.toLowerCase();
+                if (sortParams.includes(sortBy)) {
+                    compareFn = (a, b) => a[sortBy].localeCompare(b[sortBy]);
+                    users = users.sort(compareFn);
+                }
+            }
+
+            if (sort_order) {
+                if (sort_order.toLowerCase() === "desc") {
+                    users = users.reverse();
+                }
+            }
 
             return users.map(user => {
-                const { password, ...userObject } = user.toObject();
+                const { password, refreshToken, ...userObject } = user;
                 return userObject;
             });
         } catch (error) {
@@ -43,6 +85,7 @@ class UserRepository {
             const user = await UserModel.findById(id);
             let returnUser = user.toObject();
             delete returnUser.password;
+            delete returnUser.refreshToken;
             return returnUser;
         } catch (error) {
             throw error;
@@ -51,6 +94,15 @@ class UserRepository {
 
     update = async ({ username, password }) => {
 
+    }
+
+    getTotalRecords = async () => {
+        try {
+            const count = await UserModel.countDocuments();
+            return count;
+        } catch (error) {
+            throw error;
+        }
     }
 }
 

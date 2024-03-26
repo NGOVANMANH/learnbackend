@@ -19,7 +19,7 @@ router.patch(
 router.get(
     "/",
     authenticate,
-    UserController.getAll
+    UserController.get
 )
 
 router.post(

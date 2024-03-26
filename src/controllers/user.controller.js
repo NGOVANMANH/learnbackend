@@ -54,14 +54,36 @@ class UserController {
             })
     }
 
-    getAll = (req, res) => {
+    get = (req, res) => {
+
+        const { page,
+            offset,
+            limit,
+            sort_by,
+            sort_order } = req.query;
+
         UserRepository
-            .getAll()
+            .get({
+                page,
+                offset,
+                limit,
+                sort_by,
+                sort_order
+            })
             .then(users =>
-                res.status(200).json({
-                    message: "Success!",
-                    data: users,
-                })
+                UserRepository.getTotalRecords()
+                    .then(totalRecords => {
+                        res.status(200).json({
+                            message: "Success!",
+                            data: users,
+                            pagination: {
+                                totalRecords,
+                            }
+                        })
+                    })
+                    .catch(error => {
+                        throw error;
+                    })
             )
             .catch(error =>
                 res.status(httpCode.internalServerError.code).json({

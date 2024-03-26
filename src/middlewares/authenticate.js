@@ -1,26 +1,6 @@
-import { verrifyAccessToken } from "../utils/jwt.service.js";
+import { verrifyAccessToken, handleTokenError } from "../utils/jwt.service.js";
 import UserRepository from "../repositories/user.repository.js";
 import httpCode from "../utils/http.service.js";
-
-const handleError = (error) => {
-    let errors = {};
-
-    switch (error.message) {
-        case "jwt expired":
-            errors.token = "Token expired";
-            errors.expiredAt = error.expiredAt;
-            break;
-        case "invalid token":
-            errors.token = "Invalid token";
-            break;
-        case "invalid signature":
-            errors.token = "Please use valid token";
-            break;
-        default: errors.token = "Unknow error";
-    }
-
-    return errors;
-}
 
 const authenticate = (req, res, next) => {
     const { authorization } = req.headers;
@@ -53,7 +33,7 @@ const authenticate = (req, res, next) => {
 
     } catch (error) {
         return res.status(httpCode.notFound.code).json({
-            error: handleError(error),
+            error: handleTokenError(error),
         })
     }
 }

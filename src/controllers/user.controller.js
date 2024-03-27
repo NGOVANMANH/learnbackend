@@ -78,6 +78,10 @@ class UserController {
                             data: users,
                             pagination: {
                                 totalRecords,
+                                currentPage: +page >= 0 ? +page : 0,
+                                prevPage: +page > 0 ? +page - 1 : null,
+                                nextPage: +page * (+limit || 5) < totalRecords ? +page + 1 : null,
+                                lastPage: Math.floor(totalRecords / (+limit || 5)),
                             }
                         })
                     })

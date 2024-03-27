@@ -119,7 +119,7 @@ class AuthController {
 
         } catch (error) {
             res.status(httpCode.unAuthorized.code).json({
-                message: "Please login to refresh",
+                message: "Please login to get new refresh token",
                 error: handleTokenError(error),
             })
         }

@@ -13,6 +13,11 @@ router.post(
     AuthController.login
 )
 
+router.get(
+    "/verify-email",
+    AuthController.verifyEmail
+)
+
 router.post(
     "/refresh-token",
     AuthController.refreshToken

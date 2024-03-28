@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import validate from "validator";
 import bcrypt from "bcrypt";
-import { signRefreshToken } from "../utils/jwt.service.js";
+import { signRefreshToken, signVerifyToken } from "../utils/jwt.service.js";
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -32,6 +32,13 @@ const userSchema = new mongoose.Schema({
     },
     refreshToken: {
         type: String
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    verifyToken: {
+        type: String,
     }
 }, {
     timestamps: true,
@@ -42,6 +49,7 @@ userSchema.pre("save", async function (next) {
     const hashedPassword = await bcrypt.hash(this.password, salt);
     this.password = hashedPassword;
     this.refreshToken = signRefreshToken(this._id);
+    this.verifyToken = signVerifyToken(this.email);
     next();
 })
 

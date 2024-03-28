@@ -20,22 +20,29 @@ const signRefreshToken = (userId) => {
     return refreshToken;
 }
 
+const signVerifyToken = (email) => {
+    const secretKey = process.env.JWT_VERIFY_SECRET;
+    const verifyToken = jwt.sign({
+        email
+    }, secretKey, {
+        expiresIn: '1h'
+    });
+    return verifyToken;
+}
+
 const verrifyAccessToken = (accessToken) => {
-    try {
-        const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
-        return decoded;
-    } catch (error) {
-        throw error;
-    }
+    const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
+    return decoded;
 }
 
 const verrifyRefreshToken = (refreshToken) => {
-    try {
-        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-        return decoded;
-    } catch (error) {
-        throw error;
-    }
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    return decoded;
+}
+
+const verifyEmailToken = (verifyToken) => {
+    const decoded = jwt.verify(verifyToken, process.env.JWT_VERIFY_SECRET);
+    return decoded;
 }
 
 const handleError = (error) => {
@@ -64,4 +71,6 @@ export {
     verrifyAccessToken,
     verrifyRefreshToken,
     handleError as handleTokenError,
+    signVerifyToken,
+    verifyEmailToken,
 }

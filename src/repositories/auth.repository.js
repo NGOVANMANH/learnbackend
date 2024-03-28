@@ -3,43 +3,48 @@ import bcrypt from "bcrypt";
 
 class AuthRepository {
     login = async ({ email, password }) => {
-        try {
-            const user = await UserModel.findOne({ email });
-            if (user) {
-                const isMatch = await bcrypt.compare(password, user.password);
-                if (isMatch) {
-                    const { password, ...userData } = user.toObject();
-                    return userData;
-                }
+        const user = await UserModel.findOne({ email });
+        if (user) {
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (isMatch) {
+                const { password, verifyToken, ...userData } = user.toObject();
+                return userData;
             }
-            throw new Error("Wrong email or password.");
-        } catch (error) {
-            throw error;
         }
+        throw new Error("Wrong email or password.");
     }
 
     register = async ({ email, username, password }) => {
-        try {
-            const newUser = await UserModel.create({
-                username,
-                email,
-                password,
-            });
+        const newUser = await UserModel.create({
+            username,
+            email,
+            password,
+        });
 
-            let returnUser = newUser.toObject();
+        const { refreshToken, ...returnUser } = newUser.toObject();
 
-            delete returnUser.password;
-            delete returnUser.refreshToken;
+        delete returnUser.password;
 
-            return returnUser;
-        } catch (error) {
-            throw error
-        }
+        return returnUser;
     }
-
 
     refreshToken = async (refreshToken) => {
         return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+    }
+
+    verifyEmail = async (email) => {
+        const user = await UserModel.findOneAndUpdate({
+            email,
+        }, {
+            isVerified: true,
+            verifyToken: null,
+        }, {
+            new: true,
+        })
+
+        const { password, refreshToken, ...returnUser } = user.toObject();
+
+        return returnUser;
     }
 }
 

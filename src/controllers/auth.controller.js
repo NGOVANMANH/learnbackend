@@ -1,7 +1,8 @@
 import { AuthRepository } from "../repositories/index.js";
-import { signAccessToken, signRefreshToken, verrifyRefreshToken, handleTokenError } from "../utils/jwt.service.js";
+import { signAccessToken, signRefreshToken, verrifyRefreshToken, verifyEmailToken, handleTokenError } from "../utils/jwt.service.js";
 import { UserModel } from "../models/index.js";
 import httpCode from "../utils/http.service.js";
+import { sendVerificationEmail } from "../utils/email.service.js";
 
 const sendBadRequest = (res) => {
     res.status(httpCode.badRequest.code).json({
@@ -41,6 +42,13 @@ class AuthController {
         AuthRepository
             .login({ email, password })
             .then(user => {
+
+                if (user.isVerified === false) {
+                    return res.status(httpCode.accessDenied.code).json({
+                        message: "Please verify your email",
+                    })
+                }
+
                 const refreshToken = user.refreshToken;
 
                 try {
@@ -85,15 +93,17 @@ class AuthController {
 
         AuthRepository
             .register({ username, email, password })
-            .then(user =>
-                res.status(httpCode.created.code).json({
-                    message: httpCode.created.message,
+            .then(user => {
+                sendVerificationEmail(user.email, user.verifyToken);
+
+                return res.status(httpCode.created.code).json({
+                    message: "Please verify your email before using this token",
                     data: {
                         user,
                         token: signAccessToken(user._id),
                     },
                 })
-            )
+            })
             .catch(error => {
                 res.status(httpCode.badRequest.code).json({
                     error: handleError(error),
@@ -120,6 +130,34 @@ class AuthController {
         } catch (error) {
             res.status(httpCode.unAuthorized.code).json({
                 message: "Please login to get new refresh token",
+                error: handleTokenError(error),
+            })
+        }
+    }
+
+    verifyEmail = (req, res) => {
+        const { token } = req.query;
+        try {
+            const { email } = verifyEmailToken(token)
+
+            AuthRepository.verifyEmail(email)
+                .then(() => {
+                    return res.status(httpCode.ok.code).json({
+                        message: "Email verified",
+                    })
+                })
+                .catch(error => {
+                    console.log(error);
+                    res.status(httpCode.internalServerError.code).json({
+                        message: httpCode.internalServerError.message,
+                        error: {
+                            message: error.message,
+                        },
+                    })
+                })
+        } catch (error) {
+            res.status(httpCode.internalServerError.code).json({
+                message: "Verification failed",
                 error: handleTokenError(error),
             })
         }

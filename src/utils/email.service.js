@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer"
 
-async function sendOTP(email, otp) {
+async function sendVerificationEmail(email, token) {
     const transporter = nodemailer.createTransport({
         host: "smtp.gmail.com",
         port: 587,
@@ -15,23 +15,27 @@ async function sendOTP(email, otp) {
         to: email,
         subject: "Verify your email",
         html: `
-        Xin chào, <br>
-
-        Cảm ơn bạn đã đăng ký tài khoản với chúng tôi. Để hoàn tất quá trình đăng ký và bảo vệ tài khoản của bạn, chúng tôi cần xác thực địa chỉ email của bạn. <br>
-        
-        Vui lòng sử dụng mã OTP dưới đây để xác thực email của bạn: <br>
-        
-        Mã OTP: ${otp} <br>
-        
-        Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này. Xin lưu ý rằng mã OTP chỉ có hiệu lực trong một khoảng thời gian ngắn và chỉ được sử dụng một lần. <br>
-        
-        Xin cảm ơn, <br>
-        Ngô Văn Mạnh.        
+        <!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Email Verification</title>
+            </head>
+            <body>
+                <p>Hello,</p>
+                <p>Please click the following link to verify your email within the next hour:</p>
+                <p><a href="http://localhost:${process.env.PORT || 3000}/api/auth/verify-email?token=${token}">Verify Email</a></p>
+                <p>**This link will expire in 1 hour.**</p>
+                <p>If you did not request this, please ignore this email.</p>
+            </body>
+        </html>
         `
     })
 }
 
 
 export {
-    sendOTP,
+    sendVerificationEmail,
 }

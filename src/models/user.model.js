@@ -35,7 +35,6 @@ const userSchema = new mongoose.Schema({
     },
     isVerified: {
         type: Boolean,
-        default: false
     },
     verifyToken: {
         type: String,
@@ -49,6 +48,7 @@ userSchema.pre("save", async function (next) {
     const hashedPassword = await bcrypt.hash(this.password, salt);
     this.password = hashedPassword;
     this.refreshToken = signRefreshToken(this._id);
+    this.isVerified = false;
     this.verifyToken = signVerifyToken(this.email);
     next();
 })

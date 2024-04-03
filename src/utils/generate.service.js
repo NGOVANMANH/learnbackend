@@ -17,7 +17,6 @@ async function start() {
             password: "12345678"
         });
 
-        console.log(user.name);
     }
 }
 

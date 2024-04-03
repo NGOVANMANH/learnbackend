@@ -96,12 +96,8 @@ class AuthController {
             .then(user => {
                 sendVerificationEmail(user.email, user.verifyToken);
 
-                return res.status(httpCode.created.code).json({
-                    message: "Please verify your email before using this token",
-                    data: {
-                        user,
-                        token: signAccessToken(user._id),
-                    },
+                return res.status(httpCode.ok.code).json({
+                    message: "Please check and verify your email",
                 })
             })
             .catch(error => {
@@ -112,8 +108,8 @@ class AuthController {
     }
 
     refreshToken = (req, res) => {
-        const { refreshToken } = req.body;
-        if (!refreshToken) {
+        const { refreshToken, email } = req.body;
+        if (!refreshToken || !email) {
             return sendBadRequest(res);
         }
 
@@ -128,23 +124,47 @@ class AuthController {
             })
 
         } catch (error) {
-            res.status(httpCode.unAuthorized.code).json({
-                message: "Please login to get new refresh token",
-                error: handleTokenError(error),
-            })
+
+            console.log(error)
+
+            if (handleTokenError(error).expiredAt) {
+                AuthRepository.refreshToken(email)
+                    .then(user =>
+                        res.status(httpCode.ok.code).json({
+                            message: httpCode.ok.message,
+                            data: {
+                                token: signAccessToken(user._id),
+                            },
+                        })
+                    )
+                    .catch(error => {
+                        console.log(error);
+                        res.status(httpCode.internalServerError.code).json({
+                            message: httpCode.internalServerError.message,
+                            error: {
+                                message: error.message,
+                            },
+                        })
+                    })
+            }
+            else {
+                res.status(httpCode.internalServerError.code).json({
+                    message: httpCode.internalServerError.message,
+                    error: handleTokenError(error),
+                })
+            }
         }
     }
 
     verifyEmail = (req, res) => {
-        const { token } = req.query;
+        const { token, key } = req.query;
+
         try {
             const { email } = verifyEmailToken(token)
 
             AuthRepository.verifyEmail(email)
                 .then(() => {
-                    return res.status(httpCode.ok.code).json({
-                        message: "Email verified",
-                    })
+                    return res.send("Email verified")
                 })
                 .catch(error => {
                     console.log(error);
@@ -156,6 +176,15 @@ class AuthController {
                     })
                 })
         } catch (error) {
+            if (error.message === "jwt expired") {
+                UserModel.deleteOne({ email: key })
+                    .then(count => console.log(count))
+                    .catch(error => { console.log(error) })
+
+                return res.status(httpCode.notFound.code).json({
+                    message: "Verification email is over 1 hour",
+                })
+            }
             res.status(httpCode.internalServerError.code).json({
                 message: "Verification failed",
                 error: handleTokenError(error),

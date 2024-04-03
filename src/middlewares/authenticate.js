@@ -19,6 +19,13 @@ const authenticate = (req, res, next) => {
         UserRepository
             .findById(userId)
             .then(user => {
+
+                if (user.isVerified === false) {
+                    return res.status(httpCode.accessDenied.code).json({
+                        message: "Please verify your email",
+                    })
+                }
+
                 if (user.role.includes('admin')) {
                     next();
                 }

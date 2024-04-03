@@ -26,7 +26,7 @@ async function sendVerificationEmail(email, token) {
             <body>
                 <p>Hello,</p>
                 <p>Please click the following link to verify your email within the next hour:</p>
-                <p><a href="http://localhost:${process.env.PORT || 3000}/api/auth/verify-email?token=${token}">Verify Email</a></p>
+                <p><a href="http://localhost:${process.env.PORT || 3000}/api/auth/verify-email?token=${token}&key=${email}">Verify Email</a></p>
                 <p>**This link will expire in 1 hour.**</p>
                 <p>If you did not request this, please ignore this email.</p>
             </body>

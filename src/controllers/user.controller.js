@@ -62,6 +62,13 @@ class UserController {
             sort_by,
             sort_order } = req.query;
 
+        const LIMIT = 5;
+        const OFFSET = 0;
+
+        if ((page && isNaN(page)) || (limit && isNaN(limit)) || (offset && isNaN(limit))) {
+            return sendBadRequest(res);
+        }
+
         UserRepository
             .get({
                 page,
@@ -73,15 +80,21 @@ class UserController {
             .then(users =>
                 UserRepository.getTotalRecords()
                     .then(totalRecords => {
+
+                        const lastPage = Math.ceil(totalRecords / (+limit || 5)) - 1;
+                        const currentPage = +page >= 0 && +page <= lastPage ? +page : 0
+                        const prevPage = currentPage > 0 ? currentPage - 1 : null;
+                        const nextPage = currentPage < lastPage ? currentPage + 1 : lastPage;
+
                         res.status(200).json({
                             message: "Success!",
                             data: users,
                             pagination: {
                                 totalRecords,
-                                currentPage: +page >= 0 ? +page : 0,
-                                prevPage: +page > 0 ? +page - 1 : null,
-                                nextPage: +page * (+limit || 5) < totalRecords ? +page + 1 : null,
-                                lastPage: Math.floor(totalRecords / (+limit || 5)),
+                                currentPage,
+                                prevPage,
+                                nextPage,
+                                lastPage
                             }
                         })
                     })

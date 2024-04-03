@@ -1,5 +1,6 @@
 import { UserModel } from "../models/index.js";
 import bcrypt from "bcrypt";
+import { signRefreshToken } from "../utils/jwt.service.js";
 
 class AuthRepository {
     login = async ({ email, password }) => {
@@ -28,8 +29,25 @@ class AuthRepository {
         return returnUser;
     }
 
-    refreshToken = async (refreshToken) => {
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+    refreshToken = async (email) => {
+        UserModel.findOne({ email })
+            .then(async (user) => {
+                const refreshToken = signRefreshToken(user._id);
+                const newUser = await UserModel.findByIdAndUpdate({
+                    _id: user._id
+                }, {
+                    refreshToken
+                }, {
+                    new: true,
+                })
+
+                const { password, ...returnUser } = newUser.toObject();
+
+                return returnUser;
+            })
+            .catch(error => {
+                throw error;
+            })
     }
 
     verifyEmail = async (email) => {
